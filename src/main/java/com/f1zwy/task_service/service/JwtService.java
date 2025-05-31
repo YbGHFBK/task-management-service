@@ -19,7 +19,7 @@ public class JwtService {
     @Value("${jwt.secret}")
     private String secret;
 
-    @Value("$(jwt.explanation}")
+    @Value("${jwt.expiration}")
     private long expiration;
 
     public String generateToken(UserDetails userDetails) {
