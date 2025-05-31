@@ -1,11 +1,15 @@
 package com.f1zwy.task_service.controller;
 
-import com.f1zwy.task_service.dto.RequestDTO;
+import com.f1zwy.task_service.dto.AuthRequestDTO;
+import com.f1zwy.task_service.dto.AuthResponseDTO;
 import com.f1zwy.task_service.service.CustomUserDetailsService;
 import com.f1zwy.task_service.service.JwtService;
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -24,12 +28,16 @@ public class AuthController {
     private final CustomUserDetailsService customUserDetailsService;
 
     @PostMapping("/login")
-    public RequestDTO.AuthResponse login(@RequestBody RequestDTO.AuthRequest request) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.username(), request.password())
-        );
-        UserDetails user = customUserDetailsService.loadUserByUsername(request.username());
-        String token = jwtService.generateToken(user);
-        return new RequestDTO.AuthResponse(token);
+    public ResponseEntity<?> login(@RequestBody AuthRequestDTO.AuthRequest request) {
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(request.username(), request.password())
+            );
+            UserDetails user = customUserDetailsService.loadUserByUsername(request.username());
+            String token = jwtService.generateToken(user);
+            return ResponseEntity.ok(new AuthResponseDTO.AuthResponse(token));
+        } catch (BadCredentialsException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
+        }
     }
 }
